@@ -1,0 +1,16 @@
+#+TITLE: Readme
+
+* Quanto as guidelines de contribuição
+    São as mesmas que as anteriores no entanto com um escopo maior e portanto devem ser seguidas a risca para maior integração do código, abaixo um resumo
+
+* Quando devo fazer pull request?
+    Faça PR sempre que adicionar uma *feature* essa regra deve ser mandatória
+
+* Quando sei que implementei uma feature?
+    Será acordado entre os membros "a parte" de cada um, sua parte deverá ter algumas features, que é sua contribuição para o projeto
+
+* Coletânea de Resources úteis para o projeto
+[[https://www.cin.ufpe.br/~imprensa/MapaDosBlocosCIn.pdf][Mapa do Cin]]
+
+[[https://www.asciiart.eu/
+][ascIIart]]
