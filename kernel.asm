@@ -13,5 +13,4 @@ start:
     ;Código do projeto...
 
    
-
 jmp $
