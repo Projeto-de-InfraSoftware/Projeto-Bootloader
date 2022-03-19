@@ -8,12 +8,19 @@ data:
     scoreArray times 5 dw 0     ;Allocate the score array for high score queries
 
 
+
+
 start:
     xor ax, ax
     mov ds, ax
     mov es, ax
     jmp main
-    
+
+includes:
+    %include "basicIO.mac"
+    %include "draw.mac"
+    %include "blockLogic.mac"
+
     ;Código do projeto...
 macros:
     %macro input 0
