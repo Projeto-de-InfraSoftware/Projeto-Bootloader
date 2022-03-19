@@ -1,0 +1,118 @@
+%ifndef BLOCKLOGIC_MAC
+    %define BLOCKLOGIC_MAC
+
+    %macro blockPos 0
+        push ax
+        sub ax, [actualGridPos]
+        div 16
+    %endmacro
+
+    %macro bitCheckFill 0
+        mov bx, [gridArray*16 + cl]
+        and bx, 000100000000000 ;bitmask to check if filled
+        jz nothing
+        call updateBlock
+    %endmacro
+
+    %macro modOP 1
+        push al
+        div %1
+        pop ch
+        mul ch
+        sub ch, al
+    %endmacro
+
+    %macro movementMacro
+        mov ax, gridArray
+        mov bl, directionKey
+        cmp bl,0x77 ; bl is 'w'?
+        je upMov
+        cmp bl, 0x61 ;bil is 'a'
+        je leftMov
+        cmp bl, 0x64 ;bl is 'd'
+        je rightMov
+        cmp bl, 0x73 ;bl is 's'
+    %endmacro
+
+    loopGrid:
+        pusha
+        mov bx, gridArray ;start of grid
+        mov cx, 0
+        .loop:
+            mov [actualGridPos], bl
+            call dx ;dx will be the address of one of the "block functions"
+            mov bx, [gridArray+2] ;loop through the array, 2bytes = 1w per "array index"
+            cmp bx, 16
+            jne .loop
+
+    moveBlocks:
+        pusha
+        mov dx, bitCheckFill
+        nothing:
+            popa
+            ret
+
+    directionMatch:
+        pusha
+        mov dx, blockMatch
+        movementMacro
+        nothing:
+            popa
+            ret
+
+    blockMatch:
+        mov ax, [actualGridPos]
+        mov bx, 1111000000000000
+        and bx, [actualGridPos]
+        shl ax, 4               ;eliminate color and position
+        shr ax, 3               ;do the proper shift expect 000100...
+        or bx, ax
+        mov [actualGridPos], bx
+            updateBlock:
+            mov dx, [actualGridPos]
+            mov [gridArray*16 + cl], dx
+            mov dx, 0000000000000000 ;reset the state
+            ret
+
+
+    upMov:
+        blockPos
+        cmp al, 4               ;specific to this case
+        jl nothing
+        mov cl, al
+        sub cl, 3               ;index above the position
+        call dx
+        jmp nothing
+
+
+    downMov:
+        blockPos
+        cmp al, 11
+        jg nothing
+        mov cl, al
+        add cl, 3
+        call dx
+        jmp nothing
+
+    leftMov:
+        blockPos
+        mov bh, al
+        macroOP 4
+        jz nothing              ;0,4,8,12 boundaries
+        mov cl, bh
+        sub cl, 1
+        call dx
+        jmp nothing
+
+    rightMov:
+        blockPos
+        mov bh, al
+        macroOP 4
+        cmp cl, 3               ;3, 7,11,15 boundaries
+        je nothing
+        mov cl, bh
+        add cl, 1
+        call dx
+        jmp nothing
+
+%endif

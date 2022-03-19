@@ -1,0 +1,11 @@
+%ifndef BASICIO_MAC
+    %define BASICIO_MAC
+    getChar:
+    getString:
+    validateChar:
+    validateString:
+
+    pixelMultiplex
+    pipePixelContent
+    renderPixel
+%endif

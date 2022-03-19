@@ -1,0 +1,21 @@
+%ifndef DRAW_MAC
+    %define DRAW_MAC
+    drawStartChoice
+    drawCreditsChoice
+    drawhighScoreChoice
+
+    drawCredits
+    drawProjetoInfra
+    drawEnzo
+    drawLucas
+    drawMatheus
+
+    drawScore
+    drawSpacing
+    drawFillBlockColor
+    drawRows
+    drawNumbers
+
+    drawGameOver
+    drawTopScores
+%endif
