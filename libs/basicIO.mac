@@ -1,11 +1,68 @@
 %ifndef BASICIO_MAC
     %define BASICIO_MAC
 
-    %macro menuPos 0
-        mov ax, choiceMenu
-        mov si, choiceMenuPos
-        sub ax, si
-        div 5
+    %macro seedRandom 0
+        mov AH, 00h  ; gets the time
+        int 1AH      ; CX:DX = ticks since midnight
+
+        mov  ax, dx
+        xor  dx, dx
+        mov  cx, 20
+        div  cx       ;  dx = remainder
+    %endmacro
+
+    %macro randomBlock 0
+        add  dl, '9' ;add '9' to make the sequence seem random
+        mov cx, 16
+        mov  ax, dx
+        xor  dx, dx
+        div  cx ; dx = remainder of dl%15
+        mov cl, dl
+    %endmacro
+
+    ;makes si=dl*2
+    %macro fillIndex 0
+        mov al, dl
+        mov si, 0
+
+        .loopIndex:
+        cmp al,0
+        je .endIndex
+
+        dec al
+        add si,2
+        jmp .loopIndex
+        .endIndex:
+    %endmacro
+
+    ;returns valid position
+    %macro emptyChecker 0
+        fillIndex
+
+        jmp .loop
+        .resetIndex:
+        sub si, si
+        sub dl,dl
+
+        .loop:
+        mov cx, [gridArray+si]
+        cmp cx,0
+        jz .end
+
+        cmp si,32
+        je .resetIndex ;if (si==32) resets index values
+
+        add si,2 ;incrementa o contador
+        inc dl
+        jmp .loop
+    .end:
+    %endmacro
+
+
+    %macro getRandom 0
+        seedRandom
+        randomBlock
+        emptyChecker
     %endmacro
 
     getKey:
@@ -19,8 +76,8 @@
         cmp al, 0x73            ;s
         je downMov2
         cmp al,0x20             ;space
-        je confirm
-        call getKey
+        ;; je confirm
+        ;; call getKey
         jmp validateKey1
 
     validateKey2:
@@ -35,41 +92,37 @@
         call getKey
         jmp validateKey2
 
-    fillChoiceMenu:
-        mov dx, choiceMenuPos
-        mov [dx], '   START GAME   '
-        lea dx, [choiceMenuPos + 2]
-        mov [dx], '   QUIT GAME     '
-        lea dx, [choiceMenuPos + 4]
-        mov [dx], '    CREDITS     '
-        lea dx, [choiceMenuPos + 6]
-        mov [dx],'     RETURN     '
-        ret
-
     storeKey:
-        mov dx, directionKey
-        mov [dx], al
+        mov [directionKey], al
         jmp move
 
     upMov2:
-        menuPos
+        mov ax, choiceMenu
+        mov si, choiceMenuPos
+        sub ax, si
+        mov ch, 5
+        div ch
         cmp al, 0
         je getKey
-        mov si, al
-        sub si, 1
-        mov dx, [choiceMenu+2*si]
+        mov si, ax
+        sub si, 2
+        mov dx, [choiceMenu+si]
         mov [choiceMenuPos], dx
         jmp menuScreen
 
     downMov2:
-        menuPos
+        mov ax, choiceMenu
+        mov si, choiceMenuPos
+        sub ax, si
+        mov cl, 5
+        div cl
         cmp al, 5
         je getKey
-        mov si, al
-        add si, 1
-        mov dx, [choiceMenu+2*si]
+        mov si, ax
+        add si, 2
+        mov dx, [choiceMenu+si]
         mov [choiceMenuPos], dx
-        jme menuScreen
+        jmp menuScreen
 
     confirm:
         mov dx, [choiceMenuPos]
@@ -78,8 +131,8 @@
         cmp dx, 'QUIT GAME'
         je end
         cmp dx, 'CREDITS'
-        je credits
+        je creditsScreen
         cmp dx, 'RETURN'
-        je menu
+        je menuScreen
 
 %endif

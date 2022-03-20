@@ -16,7 +16,7 @@
         call drawANYKEY
 
     drawScore:
-        call drawFrame
+        call drawframe
         call drawPLAYER
         call drawSCORE
         call drawANYKEY
