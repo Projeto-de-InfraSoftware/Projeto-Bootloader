@@ -1,16 +1,16 @@
 %ifndef BLOCKLOGIC_MAC
     %define BLOCKLOGIC_MAC
-
+    ;; ------------------------------------MACROS--------------------------------------------
     %macro blockPos 0
-        push ax
-        sub ax, [actualGridPos]
+        mov si, actualGridPos
+        sub ax, si
         div 16
     %endmacro
 
     %macro bitCheckFill 0
-        mov bx, [gridArray*16 + cl]
+        mov bx, [gridArray + si]
         and bx, 000100000000000 ;bitmask to check if filled
-        jz nothing
+        jnz nothing
         call updateBlock
     %endmacro
 
@@ -18,7 +18,7 @@
         push al
         div %1
         pop ch
-        mul ch
+        mul %1
         sub ch, al
     %endmacro
 
@@ -34,21 +34,43 @@
         cmp bl, 0x73 ;bl is 's'
     %endmacro
 
+    %macro checkIfEqual
+        mov ax, [actualGridPos]
+        mov dx, [gridArray + si]
+        mov bx, 0000111111111111
+        and bx, ax              ;apply bitmask to bx
+        and dx, bx              ;apply bitmask to dx
+        cmp dx, bx              ;check if both are equal
+    %endmacro
+
+    %macro multiplyValueBy2
+        mov bx, 1111111111111111
+        shl ax
+        and ax, bx
+        mov bx, 00000100000000000
+        and ax, bx
+        jnz winScreen
+    %endmacro
+
+    ;; ---------------------------------ROUTINES----------------------------------------------
     loopGrid:
-        pusha
         mov bx, gridArray ;start of grid
-        mov cx, 0
+        mov si, 0
+        mov cl, 0               ;counter
         .loop:
-            mov [actualGridPos], bl
+            mov [actualGridPos], bx
             call dx ;dx will be the address of one of the "block functions"
-            mov bx, [gridArray+2] ;loop through the array, 2bytes = 1w per "array index"
-            cmp bx, 16
+            inc si
+            mov bx, [gridArray+2*si] ;loop through the array, 2bytes = 1w per "array index"
+            cmp si, 16
             jne .loop
+        ret
 
     moveBlocks:
         pusha
         mov dx, bitCheckFill
-        nothing:
+        movementMacro
+        nothing1:
             popa
             ret
 
@@ -56,63 +78,77 @@
         pusha
         mov dx, blockMatch
         movementMacro
-        nothing:
-            popa
-            ret
+        jmp nothing1
 
     blockMatch:
-        mov ax, [actualGridPos]
-        mov bx, 1111000000000000
-        and bx, [actualGridPos]
-        shl ax, 4               ;eliminate color and position
-        shr ax, 3               ;do the proper shift expect 000100...
-        or bx, ax
-        mov [actualGridPos], bx
+        checkIfEqual
+        jne nothing1
+        multiplyValueBy2
+        mov [actualGridPos], ax
             updateBlock:
-            mov dx, [actualGridPos]
-            mov [gridArray*16 + cl], dx
-            mov dx, 0000000000000000 ;reset the state
+            mov dx, actualGridPos
+            mov [gridArray + si], dx
+            mov [dx], 0000000000000000 ;reset the state
             ret
+
+    fillBlock:
+        pusha
+        call getRandom
+        mov [actualGridPos + 2*si], 0001000000000010
+        popa
+        ret
+
+    isGameOver:
+        cmp cl, 16
+        je end
+        cmp [bx], 0
+        jnz counterINC
+            nothing2:
+                ret
+
+    counterINC:
+        inc cl
+        jmp nothing2
 
 
     upMov:
         blockPos
         cmp al, 4               ;specific to this case
-        jl nothing
-        mov cl, al
-        sub cl, 3               ;index above the position
+        jl nothing1
+        mov si, al
+        sub si, 3               ;index above the position
         call dx
-        jmp nothing
+        jmp nothing1
 
 
     downMov:
         blockPos
         cmp al, 11
-        jg nothing
-        mov cl, al
-        add cl, 3
+        jg nothing1
+        mov si, al
+        add si, 3
         call dx
-        jmp nothing
+        jmp nothing1
 
     leftMov:
         blockPos
         mov bh, al
-        macroOP 4
-        jz nothing              ;0,4,8,12 boundaries
-        mov cl, bh
-        sub cl, 1
+        modOP 4
+        jz nothing1            ;0,4,8,12 boundaries
+        mov si, bh
+        dec si
         call dx
-        jmp nothing
+        jmp nothing1
 
     rightMov:
         blockPos
         mov bh, al
-        macroOP 4
-        cmp cl, 3               ;3, 7,11,15 boundaries
-        je nothing
-        mov cl, bh
-        add cl, 1
+        modOP 4
+        cmp si, 3               ;3, 7,11,15 boundaries
+        je nothing1
+        mov si, bh
+        inc si
         call dx
-        jmp nothing
+        jmp nothing1
 
 %endif

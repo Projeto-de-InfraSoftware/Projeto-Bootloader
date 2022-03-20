@@ -4,53 +4,65 @@ jmp 0x0000:start
 data:
 	
     gridArray times 16 dw 0     ; Allocate grid size notice that maximum value per grid is 2048, but we do this for alignment reasons
-    colorArray dw 0             ; Alloctae the color array for later mapping
-    scoreArray times 5 dw 0     ;Allocate the score array for high score queries
+    ;; colorArray dw 0             ; Alloctae the color array for later mapping
+    ;; scoreArray times 5 dw 0     ;Allocate the score array for high score queries
+    directionKey db 0      ;Allocate 1 byte for the possible 4directions
+    actualGridPos dw 0     ;Allocate 1 byte for the actual grid position
+    actualFunc dw 0        ;Allocate 1 byte for function address
+    choiceMenu times 5 dw 0     ;options in the main screens
+    choiceMenuPos dw 0     ;actual option in the main screen
 
 
-
-
-start:
-    xor ax, ax
-    mov ds, ax
-    mov es, ax
-    jmp main
 
 includes:
     %include "basicIO.mac"
     %include "draw.mac"
     %include "blockLogic.mac"
 
+start:
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
+    call fillChoiceMenu
+    ;; call fillhighScoreScreen
+    jmp main
+
     ;Código do projeto...
 macros:
-    %macro input 0
+    %macro input1 0
         call getKey
-        call validateKey
+        call validateKey1
 
     %endmacro
 
-    %macro menuChoices 0
-            call drawStartChoice
-            call drawCreditsChoice
-            call drawhighScoreChoice
+    %macro input2 0
+        call getKey
+        call validateKey2
 
     %endmacro
 
-    %macro drawCredits 0
-            call drawCredits
-            call drawProjetoInfra
-            call drawEnzo
-            call drawLucas
-            call drawMatheus
+    ;; %macro menuChoices 0
+    ;;         call drawStartChoice
+    ;;         call drawCreditsChoice
+    ;;         call drawhighScoreChoice
 
-    %endmacro
+    ;; %endmacro
 
-    %macro endLoop 0
-            call drawScore
-            call insertName
-            call isBetterScore
+    ;; %macro drawCredits 0
+    ;;         call drawCredits
+    ;;         call drawProjetoInfra
+    ;;         call drawEnzo
+    ;;         call drawLucas
+    ;;         call drawMatheus
 
-    %endmacro
+    ;; %endmacro
+
+    ;; %macro endLoop 0
+    ;;         call drawScore
+    ;;         call insertName
+    ;;         call isBetterScore
+
+    ;; %endmacro
 
     %macro renderLoop 0
             call applyColorLoop
@@ -60,61 +72,62 @@ macros:
             call drawNumbers
     %endmacro
 
+    %macro looping 0
+        mov [actualFunc], dx
+        call loopGrid
+    %endmacro
 
 main:
     screens:
-        menu:
-            menuChoices
-            input
-            call playerChoice
-            loop menu
+        menuScreen:
+            drawMenuScreen
+            input1               ;block
+            jmp menuScreen
 
-        credits:
+        creditsScreen:
             drawCredits
-            input
-            call isReturn
-            loop credits
+            call getKey
+            jmp menuScreen
 
-        game_over:
-            call drawGameOver
-            endLoop
-            input
-            call isReturn
-            loop game_over
+        gameOverScreen:
+            drawGameOver
+            call getKey
+            jmp menuScreen
 
         highScore:
-            call drawTopScores
-            input
-            call isReturn
-            loop highscore
+            drawTopScores
+            call getKey
+            jmp menuScreen
 
         winScreen:
-            endLoop
-            input
-            call isReturn
+            drawWinScreen
+            call getKey
+            jmp menuScreen
 
     action:
-        spawn:
-            call isGameOver
-            call getRandom
-            call fillBlock
+            mov dx, isGameOver
+            looping
+            input
 
         move:
-            input
-            call moveBlocks
-            call fillBlock
+            mov dx, moveBlocks
+            looping
+            looping
+            looping
 
         match:
-            call findAdjacents
-            call directionMatch
-            call unfillBlock
-        renderLoop
+            mov dx, directionMatch
+            looping
+            looping
+            looping
 
-    loop action
+        spawn:
+            call fillBlock
+            call renderLoop
+            jmp action
 
-
-    aux:
-
-
+        renderLoop:
+            ret
+end:
 
 jmp $

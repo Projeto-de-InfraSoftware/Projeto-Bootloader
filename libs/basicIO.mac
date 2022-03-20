@@ -1,11 +1,85 @@
 %ifndef BASICIO_MAC
     %define BASICIO_MAC
-    getChar:
-    getString:
-    validateChar:
-    validateString:
 
-    pixelMultiplex
-    pipePixelContent
-    renderPixel
+    %macro menuPos 0
+        mov ax, choiceMenu
+        mov si, choiceMenuPos
+        sub ax, si
+        div 5
+    %endmacro
+
+    getKey:
+        mov ah, 0x00
+        int 16h
+    ret                         ;al has key
+
+    validateKey1:
+        cmp al, 0x77            ;w
+        je upMov2
+        cmp al, 0x73            ;s
+        je downMov2
+        cmp al,0x20             ;space
+        je confirm
+        call getKey
+        jmp validateKey1
+
+    validateKey2:
+        cmp al, 0x77            ;w
+        je storeKey
+        cmp al, 0x73            ;s
+        je storeKey
+        cmp al, 0x61            ;a
+        je storeKey
+        cmp al, 0x64            ;d
+        je storeKey
+        call getKey
+        jmp validateKey2
+
+    fillChoiceMenu:
+        mov dx, choiceMenuPos
+        mov [dx], '   START GAME   '
+        lea dx, [choiceMenuPos + 2]
+        mov [dx], '   QUIT GAME     '
+        lea dx, [choiceMenuPos + 4]
+        mov [dx], '    CREDITS     '
+        lea dx, [choiceMenuPos + 6]
+        mov [dx],'     RETURN     '
+        ret
+
+    storeKey:
+        mov dx, directionKey
+        mov [dx], al
+        jmp move
+
+    upMov2:
+        menuPos
+        cmp al, 0
+        je getKey
+        mov si, al
+        sub si, 1
+        mov dx, [choiceMenu+2*si]
+        mov [choiceMenuPos], dx
+        call renderLoop
+
+    downMov2:
+        menuPos
+        cmp al, 5
+        je getKey
+        mov si, al
+        add si, 1
+        mov dx, [choiceMenu+2*si]
+        mov [choiceMenuPos], dx
+        call renderLoop
+
+    confirm:
+        mov dx, [choiceMenuPos]
+        cmp dx, 'START GAME'
+        je action
+        cmp dx, 'QUIT GAME'
+        je end
+        cmp dx, 'CREDITS'
+        je credits
+        cmp dx, 'RETURN'
+        je menu
+
 %endif
