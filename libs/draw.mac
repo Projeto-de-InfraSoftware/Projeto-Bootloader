@@ -1,21 +1,34 @@
 %ifndef DRAW_MAC
     %define DRAW_MAC
-    drawStartChoice
-    drawCreditsChoice
-    drawhighScoreChoice
+    drawMenuScreen:
+        call drawFrame
+        call drawSTART
+        call drawQUIT
+        call drawCREDITS
+        call drawACTUAL
 
-    drawCredits
-    drawProjetoInfra
-    drawEnzo
-    drawLucas
-    drawMatheus
+    drawCredits:
+        call drawFrame
+        call drawProjetoInfra
+        call drawEnzo
+        call drawLucas
+        call drawMatheus
+        call drawANYKEY
 
-    drawScore
-    drawSpacing
-    drawFillBlockColor
-    drawRows
-    drawNumbers
+    drawScore:
+        call drawFrame
+        call drawPLAYER
+        call drawSCORE
+        call drawANYKEY
 
-    drawGameOver
-    drawTopScores
+    drawGameOverScreen:
+        call drawFrame
+        call drawACTUALSCORE
+        call drawANYKEY
+
+    drawWinScreen:
+        call drawFrame
+        call drawACTUALSCORE
+        call drawANYKEY
+
 %endif

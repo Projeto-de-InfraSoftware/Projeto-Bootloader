@@ -11,6 +11,7 @@ data:
     actualFunc dw 0        ;Allocate 1 byte for function address
     choiceMenu times 5 dw 0     ;options in the main screens
     choiceMenuPos dw 0     ;actual option in the main screen
+    score times 10 dw 0             ;score data, 12bits score, 3bits name
 
 
 
@@ -41,29 +42,6 @@ macros:
 
     %endmacro
 
-    ;; %macro menuChoices 0
-    ;;         call drawStartChoice
-    ;;         call drawCreditsChoice
-    ;;         call drawhighScoreChoice
-
-    ;; %endmacro
-
-    ;; %macro drawCredits 0
-    ;;         call drawCredits
-    ;;         call drawProjetoInfra
-    ;;         call drawEnzo
-    ;;         call drawLucas
-    ;;         call drawMatheus
-
-    ;; %endmacro
-
-    ;; %macro endLoop 0
-    ;;         call drawScore
-    ;;         call insertName
-    ;;         call isBetterScore
-
-    ;; %endmacro
-
     %macro renderLoop 0
             call applyColorLoop
             call drawSpacing
@@ -80,27 +58,27 @@ macros:
 main:
     screens:
         menuScreen:
-            drawMenuScreen
+            call drawMenuScreen
             input1               ;block
-            jmp menuScreen
 
         creditsScreen:
-            drawCredits
+            call drawCreditsScreen
             call getKey
             jmp menuScreen
 
         gameOverScreen:
-            drawGameOver
+            call drawGameOverScreen
             call getKey
             jmp menuScreen
 
         highScore:
-            drawTopScores
+            call drawTopScoresScreen
             call getKey
             jmp menuScreen
 
         winScreen:
-            drawWinScreen
+            call isBetterScore
+            call drawWinScreen
             call getKey
             jmp menuScreen
 
@@ -123,11 +101,8 @@ main:
 
         spawn:
             call fillBlock
-            call renderLoop
+            renderLoop
             jmp action
-
-        renderLoop:
-            ret
 end:
 
 jmp $

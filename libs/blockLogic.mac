@@ -43,12 +43,19 @@
         cmp dx, bx              ;check if both are equal
     %endmacro
 
+    %macro scoreINC
+        mov dx, [score]
+        mov bx, 0000011111111111
+        and bx, ax
+        add [dx], bx
+    %endmacro
+
     %macro multiplyValueBy2
         mov bx, 1111111111111111
         shl ax
         and ax, bx
-        mov bx, 00000100000000000
-        and ax, bx
+        mov bx, 00000100000000000 ;check if 2048 has been achieved
+        and bx, ax
         jnz winScreen
     %endmacro
 
@@ -84,6 +91,7 @@
         checkIfEqual
         jne nothing1
         multiplyValueBy2
+        scoreINC
         mov [actualGridPos], ax
             updateBlock:
             mov dx, actualGridPos
@@ -93,14 +101,14 @@
 
     fillBlock:
         pusha
-        call getRandom
+        getRandom
         mov [actualGridPos + 2*si], 0001000000000010
         popa
         ret
 
     isGameOver:
         cmp cl, 16
-        je end
+        je gameOverScreen
         cmp [bx], 0
         jnz counterINC
             nothing2:

@@ -59,7 +59,7 @@
         sub si, 1
         mov dx, [choiceMenu+2*si]
         mov [choiceMenuPos], dx
-        call renderLoop
+        jmp menuScreen
 
     downMov2:
         menuPos
@@ -69,7 +69,7 @@
         add si, 1
         mov dx, [choiceMenu+2*si]
         mov [choiceMenuPos], dx
-        call renderLoop
+        jme menuScreen
 
     confirm:
         mov dx, [choiceMenuPos]
