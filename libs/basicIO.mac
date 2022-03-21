@@ -76,8 +76,8 @@
         cmp al, 0x73            ;s
         je downMov2
         cmp al,0x20             ;space
-        ;; je confirm
-        ;; call getKey
+        je confirm
+        call getKey
         jmp validateKey1
 
     validateKey2:

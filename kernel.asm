@@ -12,12 +12,35 @@ data:
     choiceMenu times 4 dw 'START','CREDITS','QUIT','RETURN'     ;options in the main screens
     choiceMenuPos dw 0     ;actual option in the main screen
     scoreArray times 10 dw 0             ;score data, 12bits score, 3bits name
+    enzo db 'Enzo Bissoli ~ egb2', 0
+    lucas db 'Lucas Monterazo ~ lsm6', 0
+    matheus db 'Matheus Lafayette ~ mlv', 0
+    credits db 'CREDITOS', 0
+    anykey db 'Aperte qualquer tecla para prosseguir', 0
+    gameOver db 'GAME OVER', 0
+    finalScore db 'Placar final:',0
+    youWin db 'Parabens, voce venceu!',0
+    bar db '____________________________________',0
+    verticalBar db ' | ',0
+    string times 10 db 0
+    p0 db '0    ', 0
+    p2 db '2    ', 0
+    p4 db '4    ', 0
+    p8 db '8    ', 0
+    p16 db '16   ', 0
+    p32 db '32   ', 0
+    p64 db '64   ', 0
+    p128 db '128  ', 0
+    p256 db '256  ', 0
+    p512 db '512  ', 0
+    p1024 db '1024 ', 0
+    p2048 db '2048 ', 0
 
 
 includes:
     %include "./libs/basicIO.mac"
     %include "./libs/blockLogic.mac"
-    ;; %include "./libs/draw.mac"
+    %include "./libs/draw.mac"
 
 start:
     xor ax, ax
@@ -26,21 +49,22 @@ start:
     ;; call fillChoiceMenu
     ;; call fillhighScoreScreen
     jmp main
+    seedRandom
 
 
     ;Código do projeto...
 macros:
-    ;; %macro input1 0
-    ;;     call getKey
-    ;;     call validateKey1
+    %macro input1 0
+        call getKey
+        call validateKey1
 
-    ;; %endmacro
+    %endmacro
 
-    ;; %macro input2 0
-    ;;     call getKey
-    ;;     call validateKey2
+    %macro input2 0
+        call getKey
+        call validateKey2
 
-    ;; %endmacro
+    %endmacro
 
     ;; %macro renderLoop 0
     ;;         call applyColorLoop
@@ -50,59 +74,60 @@ macros:
     ;;         call drawNumbers
     ;; %endmacro
 
-    ;; %macro looping 0
-    ;;     mov [actualFunc], dx
-    ;;     call loopGrid
-    ;; %endmacro
+    %macro looping 0
+        mov [actualFunc], dx
+        call loopGrid
+    %endmacro
 
 main:
     screens:
         menuScreen:
             ;; call drawMenuScreen
-            input1               ;block
+            ;; input1               ;block
 
         creditsScreen:
-        ;;     call drawCreditsScreen
-        ;;     call getKey
-            jmp menuScreen
+            drawCreditsScreen
+            call getKey
+            jmp gameOverScreen
 
         gameOverScreen:
-        ;;     call drawGameOverScreen
-        ;;     call getKey
-            jmp menuScreen
+            ;; drawGameOverScreen
+            ;; call getKey
+            ;; jmp winScreen
 
         highScore:
         ;;     call drawTopScoresScreen
         ;;     call getKey
-            jmp menuScreen
+            ;; jmp menuScreen
 
         winScreen:
-        ;;     call isBetterScore
-        ;;     call drawWinScreen
-        ;;     call getKey
-            jmp menuScreen
+            ;; isBetterScore
+            ;; drawWinScreen
+            ;; call getKey
+            ;; jmp creditsScreen
 
+            call fillBlock
     action:
             ;; mov dx, isGameOver
             ;; looping
-            ;; input2
+            input2
 
         move:
-    ;;         mov dx, moveBlocks
-    ;;         looping
-    ;;         looping
-    ;;         looping
+            mov dx, moveBlocks
+            looping
+            ;; looping
+            ;; looping
 
-        match:
-    ;;         mov dx, directionMatch
-    ;;         looping
-    ;;         looping
-    ;;         looping
+        ;; match:
+        ;;     mov dx, directionMatch
+        ;;     looping
+        ;;     looping
+        ;;     looping
 
         spawn:
-    ;;         call fillBlock
-    ;;         ;; renderLoop
-            ;; jmp action
+            ;; call fillBlock
+            inicdisplay
+            jmp action
 end:
 
 jmp $

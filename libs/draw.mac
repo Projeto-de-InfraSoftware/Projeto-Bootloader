@@ -1,34 +1,392 @@
 %ifndef DRAW_MAC
     %define DRAW_MAC
-    drawMenuScreen:
-        call drawFrame
-        call drawSTART
-        call drawQUIT
-        call drawCREDITS
-        call drawACTUAL
+reverse:              ; mov si, string
+  mov di, si
+  xor cx, cx          ; zerar contador
+  .loop1:             ; botar string na stack
+    lodsb
+    cmp al, 0
+    je .endloop1
+    inc cl
+    push ax
+    jmp .loop1
+  .endloop1:
+  .loop2:             ; remover string da stack
+    pop ax
+    stosb
+    loop .loop2
+  ret
+	setvideo:
+    mov ah, 0 ;seta modo de vídeo
+    mov al, 13h ;modo VGA
+    int 10h
+      mov ah, 0xb ;scolhe cor da tela
+    mov bh, 0
+    mov bl, 3 ;cor da tela
+    int 10h
 
-    drawCredits:
-        call drawFrame
-        call drawProjetoInfra
-        call drawEnzo
-        call drawLucas
-        call drawMatheus
-        call drawANYKEY
+    mov ah, 0xe ;escolhe cor da letra
+    mov bh, 0   ;numero da pagina
+    mov bl, 0xf ;cor branca da letra
+    ret
 
-    drawScore:
-        call drawframe
-        call drawPLAYER
-        call drawSCORE
-        call drawANYKEY
+    tostring:              ; mov ax, int / mov di, string
+    push di
+    .loop1:
+        cmp ax, 0
+        je .endloop1
+        xor dx, dx
+        mov bx, 10
+        div bx            ; ax = 9999 -> ax = 999, dx = 9
+        xchg ax, dx       ; swap ax, dx
+        add ax, 48        ; 9 + '0' = '9'
+        stosb
+        xchg ax, dx
+        jmp .loop1
+    .endloop1:
+    pop si
+    cmp si, di
+    jne .done
+    mov al, 48
+    stosb
+    .done:
+    mov al, 0
+    stosb
+    call reverse
+    ret
 
-    drawGameOverScreen:
-        call drawFrame
-        call drawACTUALSCORE
-        call drawANYKEY
+    clear:
+    mov al, 0
+    mov bh, 0
+    mov cx, 10
+    mov dx, 10
 
-    drawWinScreen:
-        call drawFrame
-        call drawACTUALSCORE
-        call drawANYKEY
+    .alignment:
+        .column:
+            mov ah, 0ch
+            int 10h
 
+            inc cx
+            cmp cx, 320
+                jne .alignment
+            mov cx, 10
+            inc dx
+            cmp dx, 200
+            jne .column
+            ret
+
+    mov dx, 0
+    mov bh, 0
+    mov ah, 02h
+    int 10h
+    ret
+
+
+    getchar:
+    mov ah, 0x00
+    int 16h
+  ret
+    putchar:
+        mov ah, 0x0e
+        int 10h
+    ret
+
+    prints:             ; mov si, string
+    .loop:
+        lodsb           ; bota character em al
+        cmp al, 0
+        je .endloop
+        call putchar
+        jmp .loop
+    .endloop:
+    ret
+
+    %macro drawEnzo 0
+        mov ah,02h
+        mov bl, 10
+        mov dh,8    ;height
+        mov dl,12    ;alignment
+
+        int 10h
+        mov si, enzo
+        call prints
+    %endmacro
+
+    %macro drawLucas 0
+        mov ah,02h
+        mov bl, 5
+        mov dh,12    ;height
+        mov dl,10     ;alignment
+        int 10h
+        mov si, lucas
+        call prints
+    %endmacro
+
+
+    %macro drawMatheus 0
+        mov bl, 3
+        mov ah,02h
+        mov dh,16    ;height
+        mov dl,10   ;alignment
+        int 10h
+        mov si, matheus
+        call prints
+    %endmacro
+
+    %macro drawCredits 0
+        mov bl, 4
+        mov ah,02h
+        mov dh,2   ;height
+        mov dl,16   ;alignment
+        int 10h
+        mov si, credits
+        call prints
+    %endmacro
+
+    %macro drawAnyKey 0
+        mov bl, 15
+        mov ah,02h
+        mov dh,23  ;height
+        mov dl,1   ;alignment
+        int 10h
+        mov si, anykey
+        call prints
+    %endmacro
+
+    %macro drawCreditsScreen 0
+        call setvideo
+        drawCredits
+        drawEnzo
+        drawLucas
+        drawMatheus
+        drawAnyKey
+        call getchar
+
+    %endmacro
+
+    %macro drawGameOver 0
+        mov bl, 4
+        mov ah,02h
+        mov dh,4   ;height
+        mov dl,15  ;alignment
+        int 10h
+        mov si, gameOver
+        call prints
+    %endmacro
+
+    %macro drawFinalScore 0
+        mov bl, 14
+        mov ah,02h
+        mov dh,13  ;height
+        mov dl,13  ;alignment
+        int 10h
+        mov si, finalScore
+        call prints
+    %endmacro
+
+    %macro drawScoreValue 0
+        mov bl, 4
+        mov ah,02h
+        mov dh,15  ;height
+        mov dl,18   ;alignment
+        int 10h
+        mov si, '200'
+        call prints
+    %endmacro
+
+    %macro drawFrameBar 1
+        mov bl, 15
+        mov ah,02h
+        mov dh,%1;height
+        mov dl,2   ;alignment
+        int 10h
+        mov si, bar
+        call prints
+    %endmacro
+
+    %macro drawVerticalLeft 0
+        mov dh, 1 ;initial height
+
+        .loopFrame:
+        mov bl, 15
+        mov ah,02h
+        mov dl,0   ;alignment
+        int 10h
+        mov si, verticalBar
+        call prints
+        inc dh
+        cmp dh,22
+        je .endloop
+        jmp .loopFrame
+        .endloop:
+    %endmacro
+
+    %macro drawVerticalRight 0
+        mov dh, 1 ;initial height
+
+        .loopFrameR:
+        mov bl, 15
+        mov ah,02h
+        mov dl,37  ;alignment
+        int 10h
+        mov si, verticalBar
+        call prints
+        inc dh
+        cmp dh,22
+        je .endloopR
+        jmp .loopFrameR
+        .endloopR:
+    %endmacro
+
+    %macro drawGameOverScreen 0
+        call setvideo
+        call clear
+        drawGameOver
+        drawAnyKey
+        drawScoreValue
+        drawFinalScore
+        drawVerticalLeft
+        drawVerticalRight
+        drawFrameBar 0
+        drawFrameBar 21
+        call getchar
+
+    %endmacro
+
+
+    %macro drawWinner 0
+        mov bl, 5
+        mov ah,02h
+        mov dh,4   ;height
+        mov dl,8   ;alignment
+        int 10h
+        mov si, youWin
+        call prints
+    %endmacro
+
+
+    %macro drawWinScreen 0
+        call setvideo
+        call clear
+        drawWinner
+        drawAnyKey
+        drawFinalScore
+
+        drawFrameBar 0
+        drawFrameBar 21
+        call getchar
+
+
+    %endmacro
+
+    %macro pushset 0
+
+        mov ax, [di]
+        and ax, 0000011111111111
+
+    %endmacro
+
+    %macro inicdisplay 0
+
+        mov ax, 0002h                   ;dh -> row || dl -> column
+        int 10h
+
+        mov dh, 0                       ;linha no começo
+        mov cx, 16                      ;grid 4x4
+
+        lea di, [gridArray]             ;ponteiro para a stack
+        mov bl, 0                       ;iterador da coluna
+        mov bh, 0                       ;page number
+
+        display
+
+    %endmacro
+
+    %macro display 0
+
+        cmp bl, 4                   ;caso sim, nova linha
+        jne callprintnumber         ;caso nao seja uma nova linha
+        add dh, 3                   ;desce uma linha
+        mov dl, 0                   ;coluna volta para o começo
+        mov bh, 0                   ;page number
+        mov ah, 02h                 ;para cursor de posição
+        int 10h
+        mov bl, 0                   ;zera contador das colunas
+        jmp callprintnumber
+
+    %endmacro
+
+    %macro printnumber 0
+
+        pushset
+
+        mov si, p0
+        cmp ax, 0
+        je callprintupdate
+
+        mov si, p2
+        cmp ax, 1
+        je callprintupdate
+
+        mov si, p4
+        cmp ax, 2
+        je callprintupdate
+
+        mov si, p8
+        cmp ax, 4
+        je callprintupdate
+
+        mov si, p16
+        cmp ax, 8
+        je callprintupdate
+
+        mov si, p32
+        cmp ax, 16
+        je callprintupdate
+
+        mov si, p64
+        cmp ax, 32
+        je callprintupdate
+
+        mov si, p128
+        cmp ax, 64
+        je callprintupdate
+
+        mov si, p256
+        cmp ax, 128
+        je callprintupdate
+
+        mov si, p512
+        cmp ax, 256
+        je callprintupdate
+
+        mov si, p1024
+        cmp ax, 512
+        je callprintupdate
+
+        mov si, p2048
+        jmp callprintupdate
+
+    %endmacro
+
+    %macro printupdate 0
+
+        call prints
+        add di, 2               ;proximo valor do gridArray
+        inc bl                  ;incrementa coluna
+        dec cx
+        cmp cx, 0
+        je action
+        jmp display
+        ;loop display
+
+    %endmacro
+
+callprintnumber:
+    printnumber
+    ret
+
+callprintupdate:
+    printupdate
+    ret
 %endif
