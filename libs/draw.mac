@@ -154,7 +154,6 @@ reverse:              ; mov si, string
     %endmacro
 
     %macro drawCreditsScreen 0
-        call setvideo
         drawCredits
         drawEnzo
         drawLucas

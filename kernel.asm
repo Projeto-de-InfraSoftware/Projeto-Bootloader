@@ -35,6 +35,7 @@ data:
     p512 db '512  ', 0
     p1024 db '1024 ', 0
     p2048 db '2048 ', 0
+    actualGridVal dw 0          ;store value
 
 
 includes:
@@ -46,6 +47,7 @@ start:
     xor ax, ax
     mov ds, ax
     mov es, ax
+    call setvideo
     ;; call fillChoiceMenu
     ;; call fillhighScoreScreen
     jmp main
@@ -87,13 +89,11 @@ main:
 
         creditsScreen:
             drawCreditsScreen
-            call getKey
             jmp gameOverScreen
 
         gameOverScreen:
-            ;; drawGameOverScreen
-            ;; call getKey
-            ;; jmp winScreen
+            drawGameOverScreen
+            jmp winScreen
 
         highScore:
         ;;     call drawTopScoresScreen
@@ -102,8 +102,7 @@ main:
 
         winScreen:
             ;; isBetterScore
-            ;; drawWinScreen
-            ;; call getKey
+            drawWinScreen
             ;; jmp creditsScreen
 
             call fillBlock
@@ -114,15 +113,15 @@ main:
 
         move:
             mov dx, moveBlocks
-            looping
+            ;; looping
             ;; looping
             ;; looping
 
-        ;; match:
-        ;;     mov dx, directionMatch
-        ;;     looping
-        ;;     looping
-        ;;     looping
+        match:
+            mov dx, directionMatch
+            ;; looping
+            ;; looping
+            ;; looping
 
         spawn:
             ;; call fillBlock

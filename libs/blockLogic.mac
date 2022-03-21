@@ -64,6 +64,8 @@
             call dx ;dx will be the address of one of the "block functions"
             add si, 2
             lea bx, [gridArray+si] ;loop through the array, 2bytes = 1w per "array index"
+            mov ax, [bx]
+            mov [actualGridVal], ax
             cmp si, 16
             jne .loop
         ret
@@ -96,7 +98,7 @@
         scoreINC
         mov [actualGridPos], ax
             updateBlock:
-            mov dx, [actualGridPos]
+            mov dx, [actualGridVal]
             mov [gridArray + si], dx
             mov dx, 0000000000000000 ;reset the state
             mov [actualGridPos], dx
